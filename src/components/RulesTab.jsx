@@ -1,6 +1,6 @@
 import { RULES } from '../lib/rules.js'
-import { STATES, STATE_KEYS } from '../data/presets.js'
-import { StateBadge } from './shared.jsx'
+import { STATES, STATE_KEYS } from '../constants/presets.js'
+import { StateBadge } from './ui/index.jsx'
 
 // Lists every rule (fired/toggleable) and the live vote tally per state.
 export default function RulesTab({ ruleResult, disabledIds, onToggleRule }) {

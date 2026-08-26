@@ -1,9 +1,9 @@
 import { useMemo, useState } from 'react'
-import { EVAL_SESSIONS } from '../data/presets.js'
+import { EVAL_SESSIONS } from '../constants/presets.js'
 import { extractFeatures } from '../lib/features.js'
 import { runRules } from '../lib/rules.js'
 import { callLLMClassifier } from '../lib/classify.js'
-import { StateBadge } from './shared.jsx'
+import { StateBadge } from './ui/index.jsx'
 
 // Batch eval vs the labeled corpus: rules scored instantly, LLM on demand.
 // Uses the full rule set regardless of UI toggles.

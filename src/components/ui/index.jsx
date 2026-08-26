@@ -1,6 +1,6 @@
 // Small presentational primitives shared across panels and tabs.
 
-import { STATES } from '../data/presets.js'
+import { STATES } from '../../constants/presets.js'
 
 export function StateBadge({ state, size = 'sm' }) {
   const meta = STATES[state]
@@ -74,7 +74,7 @@ export function AgreementPill({ agreement }) {
   if (agreement === null || agreement === undefined) return null
   return agreement ? (
     <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-xs font-medium text-emerald-300 ring-1 ring-emerald-400/30">
-      rules & LLM agree
+      rules &amp; LLM agree
     </span>
   ) : (
     <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-xs font-medium text-amber-300 ring-1 ring-amber-400/30">

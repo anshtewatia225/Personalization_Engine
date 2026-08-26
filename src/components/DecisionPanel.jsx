@@ -1,5 +1,5 @@
-import { STATES } from '../data/presets.js'
-import { StateBadge, ConfidenceBar, Panel, AgreementPill } from './shared.jsx'
+import { STATES } from '../constants/presets.js'
+import { StateBadge, ConfidenceBar, Panel, AgreementPill } from './ui/index.jsx'
 
 // Right panel: final decision + rule/LLM verdicts, evidence, and the nudge.
 export default function DecisionPanel({

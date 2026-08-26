@@ -1,5 +1,5 @@
-import { STATES } from '../data/presets.js'
-import { EventTypePill, StateBadge } from './shared.jsx'
+import { STATES } from '../constants/presets.js'
+import { EventTypePill, StateBadge } from './ui/index.jsx'
 
 // Rule-engine classification at each step of the session.
 export default function TimelineTab({ steps }) {

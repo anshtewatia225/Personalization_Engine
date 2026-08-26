@@ -1,5 +1,5 @@
-import { PRESETS } from '../data/presets.js'
-import { StateBadge } from './shared.jsx'
+import { PRESETS } from '../constants/presets.js'
+import { StateBadge } from './ui/index.jsx'
 
 // Left rail: loadable labeled sessions.
 export default function PresetPanel({ activeId, onLoad }) {

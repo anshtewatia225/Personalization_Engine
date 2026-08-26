@@ -1,5 +1,5 @@
-import { EVENT_TYPES } from '../data/presets.js'
-import { EventTypePill, Panel } from './shared.jsx'
+import { EVENT_TYPES } from '../constants/presets.js'
+import { EventTypePill, Panel } from './ui/index.jsx'
 
 // Middle panel: the live event stream. Edits re-classify instantly.
 export default function EventStreamPanel({

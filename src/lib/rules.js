@@ -1,7 +1,7 @@
 // Weighted rules vote for a state from the extracted features. The engine sums
 // votes, picks the winner, and derives confidence from how dominant the win is.
 
-import { STATE_KEYS } from '../data/presets.js'
+import { STATE_KEYS } from '../constants/presets.js'
 
 // Ordered by state so ties break deterministically and predictably.
 export const RULES = [

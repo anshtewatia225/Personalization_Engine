@@ -1,6 +1,6 @@
 // Derives deterministic signals from the raw event stream. Rules score off these.
 
-import { EVENT_TYPES } from '../data/presets.js'
+import { EVENT_TYPES } from '../constants/presets.js'
 
 // Search/URL terms that imply price sensitivity.
 const DEAL_KEYWORDS = ['discount', 'promo', 'coupon', 'deal', 'sale', 'code', 'offer', 'cheap', 'clearance']
