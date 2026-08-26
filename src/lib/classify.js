@@ -5,7 +5,7 @@
 import { STATES } from '../constants/presets.js'
 
 export const GROQ_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api/groq'
-export const GROQ_MODEL = 'llama-3.3-70b-versatile'
+export const GROQ_MODEL = 'openai/gpt-oss-120b'
 
 const VALID_STATES = Object.keys(STATES)
 
