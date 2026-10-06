@@ -29,9 +29,12 @@ LLM only on ambiguous sessions. Both verdicts and their agreement/disagreement
 are always surfaced, because a disagreement is itself the signal for what to
 route to human review.
 
-The two run independently (the LLM never sees the rules) so agreement means
-something. Injecting state definitions into the prompt was tested, showed no
-accuracy lift, and was removed.
+The two run independently (the LLM never sees the rules' verdict or scores) so
+agreement means something. The prompt does include a short **taxonomy rubric** —
+what each state means and, critically, that `CART_ABANDONER` requires an
+abandoned checkout (not merely "added to cart, didn't buy"). That's the problem
+spec, not the answer: without it the LLM substitutes its own priors and disagrees
+on discount-seeking sessions. See [ADR 0006](./docs/adr/0006-prompt-taxonomy-rubric.md).
 
 ## Results
 

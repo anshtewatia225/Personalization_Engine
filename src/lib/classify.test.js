@@ -43,6 +43,24 @@ describe('buildPrompt', () => {
     expect(user).toContain('1. [SEARCH] shoes')
     expect(user).toContain('Return visitor: true')
   })
+
+  it('defines the taxonomy and disambiguates cart abandonment', () => {
+    const { system } = buildPrompt([], false)
+    // Regression: without this, the LLM treats "added to cart, didn't buy" as
+    // abandonment and disagrees on discount-seeking sessions.
+    expect(system).toContain('CHECKOUT_START')
+    expect(system).toContain('CHECKOUT_ABANDON')
+    expect(system).toMatch(/not abandonment/i)
+  })
+
+  it('never leaks the rule verdict into the prompt (independence)', () => {
+    const { system } = buildPrompt([], false)
+    expect(system).not.toMatch(/weight|score|vote/i)
+  })
+
+  it('stamps the current prompt version', () => {
+    expect(PROMPT_VERSION).toBe('v3')
+  })
 })
 
 describe('extractJson', () => {

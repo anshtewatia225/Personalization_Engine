@@ -24,4 +24,7 @@ two verdicts *after* both have run independently.
 - **Negative:** the LLM occasionally re-derives information the rules already
   knew, which is redundant work on ambiguous sessions.
 - **Evidence:** injecting the state definitions into the prompt was tested and
-  produced no accuracy lift, so it was removed.
+  produced no accuracy lift, so it was removed. This was later revisited: a
+  compact taxonomy rubric is now included because bare state names let the LLM
+  apply its own priors (see [ADR 0006](./0006-prompt-taxonomy-rubric.md)). The
+  rule *verdict and scores* remain excluded.

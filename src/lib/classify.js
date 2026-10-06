@@ -8,7 +8,7 @@ import { sanitizeEvents } from './sanitize.js'
 export const GROQ_BASE_URL =
   (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_BASE_URL) || '/api/groq'
 export const GROQ_MODEL = 'openai/gpt-oss-120b'
-export const PROMPT_VERSION = 'v2'
+export const PROMPT_VERSION = 'v3'
 
 // Approximate USD price per 1M tokens, used only for a rough cost readout.
 const PRICING = {
@@ -29,8 +29,20 @@ export function estimateCost(model, usage) {
 }
 
 export function buildPrompt(events, isReturning) {
+  // The rubric defines the task (what each state means). It deliberately does
+  // NOT include the rule verdict or scores, so the two classifiers stay
+  // independent and agreement remains meaningful. Without definitions the LLM
+  // substitutes its own priors — e.g. treating "added to cart, didn't buy" as
+  // abandonment, which this taxonomy reserves for abandoned checkouts.
   const system =
-    'You are a real-time ecommerce shopper intent classifier. Given a sequence of user session events, classify the shopper into exactly ONE state: BROWSER, COMPARER, DISCOUNT_SEEKER, CART_ABANDONER, or LOYAL_CUSTOMER. Respond ONLY with valid JSON, no markdown: { classification, confidence (0-100), evidence (array of 3 strings), recommended_action (string), reasoning (string, 2 sentences) }'
+    "You are a real-time ecommerce shopper intent classifier. Given a session's events, classify the shopper into exactly ONE state using these definitions:\n" +
+    '- BROWSER: browsing pages/products with no cart, coupon, or comparison activity.\n' +
+    '- COMPARER: evaluating several products via repeated COMPARE_VIEW (or many product views without adding to cart).\n' +
+    '- DISCOUNT_SEEKER: price-sensitive behavior — COUPON_ATTEMPT and/or deal-intent SEARCH or PAGE_VIEW about discounts, promos, coupons, or sales.\n' +
+    '- CART_ABANDONER: the shopper explicitly started checkout then abandoned — requires CHECKOUT_START followed by CHECKOUT_ABANDON. Adding to cart without purchasing is NOT abandonment by itself; if there is no CHECKOUT_START/CHECKOUT_ABANDON, do not choose CART_ABANDONER.\n' +
+    '- LOYAL_CUSTOMER: a returning visitor who adds to cart and/or checks out without abandoning.\n' +
+    'If a session is genuinely mixed, pick the state with the strongest actionable signal and explain the ambiguity in your reasoning. ' +
+    'Respond ONLY with valid JSON, no markdown: { classification, confidence (0-100), evidence (array of 3 strings), recommended_action (string), reasoning (string, 2 sentences) }'
 
   const user =
     `Classify this shopper session:\n\n` +

@@ -10,3 +10,4 @@ behind them. Written to be readable in ~60 seconds each.
 | [0003](./0003-rules-only-timeline.md) | Rules-only timeline (no LLM per prefix) | Accepted |
 | [0004](./0004-confidence-calibration.md) | Calibrate confidence instead of trusting magic numbers | Accepted |
 | [0005](./0005-server-side-engine-and-key-proxy.md) | Server-side engine + key-holding API | Accepted |
+| [0006](./0006-prompt-taxonomy-rubric.md) | Prompt taxonomy rubric (disambiguating cart abandonment) | Accepted |
