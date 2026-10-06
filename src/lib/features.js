@@ -3,7 +3,17 @@
 import { EVENT_TYPES } from '../constants/presets.js'
 
 // Search/URL terms that imply price sensitivity.
-const DEAL_KEYWORDS = ['discount', 'promo', 'coupon', 'deal', 'sale', 'code', 'offer', 'cheap', 'clearance']
+const DEAL_KEYWORDS = [
+  'discount',
+  'promo',
+  'coupon',
+  'deal',
+  'sale',
+  'code',
+  'offer',
+  'cheap',
+  'clearance',
+]
 
 function countByType(events) {
   const counts = Object.fromEntries(EVENT_TYPES.map((t) => [t, 0]))

@@ -1,0 +1,196 @@
+openapi: 3.0.3
+info:
+  title: Shopper Intent API
+  version: 1.0.0
+  description: >
+    Key-holding API for the Shopper Intent Engine. Proxies Groq so the API key
+    never reaches the browser, and exposes the deterministic rule engine
+    server-side.
+servers:
+  - url: http://localhost:8080
+    description: Local
+  - url: https://shopper-intent-api.onrender.com
+    description: Production (Render)
+tags:
+  - name: system
+  - name: engine
+  - name: llm
+paths:
+  /health:
+    get:
+      tags: [system]
+      summary: Liveness probe
+      responses:
+        '200':
+          description: Service is up
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+                  uptime: { type: integer }
+                  version: { type: string }
+  /metrics:
+    get:
+      tags: [system]
+      summary: Request + store metrics
+      responses:
+        '200':
+          description: Metrics snapshot
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Metrics'
+  /api/classify:
+    post:
+      tags: [engine]
+      summary: Classify a session with the deterministic rule engine
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClassifyRequest'
+      responses:
+        '200':
+          description: Classification result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClassifyResponse'
+        '400':
+          description: Malformed input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Rate limited
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/groq/openai/v1/chat/completions:
+    post:
+      tags: [llm]
+      summary: Proxy a chat completion to Groq with the server-side key
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: OpenAI-compatible chat completion payload
+      responses:
+        '200':
+          description: Upstream Groq response (passed through)
+        '500':
+          description: GROQ_API_KEY not configured
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '502':
+          description: Upstream error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '504':
+          description: Upstream timed out
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+components:
+  schemas:
+    Event:
+      type: object
+      required: [type, detail]
+      properties:
+        type:
+          type: string
+          enum:
+            [
+              PAGE_VIEW,
+              PRODUCT_VIEW,
+              SEARCH,
+              COUPON_ATTEMPT,
+              ADD_TO_CART,
+              REMOVE_FROM_CART,
+              CHECKOUT_START,
+              CHECKOUT_ABANDON,
+              COMPARE_VIEW,
+              REPEAT_VISIT,
+            ]
+        detail:
+          type: string
+          maxLength: 280
+    ClassifyRequest:
+      type: object
+      required: [events]
+      properties:
+        events:
+          type: array
+          maxItems: 200
+          items:
+            $ref: '#/components/schemas/Event'
+        isReturning:
+          type: boolean
+    ClassifyResponse:
+      type: object
+      properties:
+        classification:
+          type: string
+          enum: [BROWSER, COMPARER, DISCOUNT_SEEKER, CART_ABANDONER, LOYAL_CUSTOMER]
+        confidence: { type: integer, minimum: 0, maximum: 100 }
+        scores:
+          type: object
+          additionalProperties: { type: number }
+        firedRules:
+          type: array
+          items:
+            type: object
+            properties:
+              id: { type: string }
+              label: { type: string }
+              state: { type: string }
+              weight: { type: number }
+              explanation: { type: string }
+        signals:
+          type: object
+          properties:
+            total: { type: integer }
+            funnelDepth: { type: integer }
+            couponAttempts: { type: integer }
+            compareViews: { type: integer }
+            abandonedCheckout: { type: boolean }
+        meta:
+          type: object
+          properties:
+            recordId: { type: string }
+            requestId: { type: string }
+    Metrics:
+      type: object
+      properties:
+        requests: { type: integer }
+        errors: { type: integer }
+        avgLatencyMs: { type: integer }
+        byRoute:
+          type: object
+          additionalProperties: { type: integer }
+        store:
+          type: object
+          properties:
+            count: { type: integer }
+            distribution:
+              type: object
+              additionalProperties: { type: integer }
+    Error:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            message: { type: string }

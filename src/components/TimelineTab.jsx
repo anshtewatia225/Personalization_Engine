@@ -14,7 +14,11 @@ export default function TimelineTab({ steps }) {
         {steps.map((step, i) => {
           const changed = i === 0 || step.classification !== steps[i - 1].classification
           return (
-            <div key={step.index} className="flex items-center gap-1" title={`Step ${step.index}: ${step.classification}`}>
+            <div
+              key={step.index}
+              className="flex items-center gap-1"
+              title={`Step ${step.index}: ${step.classification}`}
+            >
               <span
                 className={`h-3 w-3 rounded-full ${STATES[step.classification].dotClass} ${
                   changed ? 'ring-2 ring-white/30' : ''
@@ -35,7 +39,9 @@ export default function TimelineTab({ steps }) {
               key={step.index}
               className="flex items-center gap-3 rounded-lg border border-slate-700/70 bg-slate-900/40 px-3 py-2"
             >
-              <span className="w-5 shrink-0 text-right font-mono text-xs text-slate-600">{step.index}</span>
+              <span className="w-5 shrink-0 text-right font-mono text-xs text-slate-600">
+                {step.index}
+              </span>
               <div className="min-w-0 flex-1">
                 <EventTypePill type={step.event.type} />
                 <p className="mt-0.5 truncate text-sm text-slate-300">{step.event.detail}</p>
@@ -47,7 +53,9 @@ export default function TimelineTab({ steps }) {
                   </span>
                 )}
                 <StateBadge state={step.classification} />
-                <span className="w-8 text-right font-mono text-xs text-slate-500">{step.confidence}%</span>
+                <span className="w-8 text-right font-mono text-xs text-slate-500">
+                  {step.confidence}%
+                </span>
               </div>
             </li>
           )

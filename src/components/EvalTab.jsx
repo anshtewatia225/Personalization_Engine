@@ -24,7 +24,9 @@ export default function EvalTab() {
   const ruleAccuracy = Math.round((ruleCorrect / EVAL_SESSIONS.length) * 100)
 
   const llmScored = EVAL_SESSIONS.filter((s) => llmPreds[s.id]?.classification)
-  const llmCorrect = llmScored.filter((s) => llmPreds[s.id].classification === s.expectedState).length
+  const llmCorrect = llmScored.filter(
+    (s) => llmPreds[s.id].classification === s.expectedState,
+  ).length
   const llmAccuracy = llmScored.length ? Math.round((llmCorrect / llmScored.length) * 100) : null
 
   async function runLLMEval() {
@@ -45,7 +47,11 @@ export default function EvalTab() {
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex gap-3">
-          <Metric label="Rule engine accuracy" value={`${ruleAccuracy}%`} sub={`${ruleCorrect}/${EVAL_SESSIONS.length}`} />
+          <Metric
+            label="Rule engine accuracy"
+            value={`${ruleAccuracy}%`}
+            sub={`${ruleCorrect}/${EVAL_SESSIONS.length}`}
+          />
           <Metric
             label="LLM accuracy"
             value={llmAccuracy === null ? '—' : `${llmAccuracy}%`}

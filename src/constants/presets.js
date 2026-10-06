@@ -137,7 +137,8 @@ export const PRESETS = [
     // CART_ABANDONER (clearest business signal); the rules tend to miss it.
     id: 'torn-shopper',
     name: 'Torn Shopper',
-    description: 'Returning, compares options, tries a coupon, then bails at checkout — genuinely mixed.',
+    description:
+      'Returning, compares options, tries a coupon, then bails at checkout — genuinely mixed.',
     isReturning: true,
     expectedState: 'CART_ABANDONER',
     events: [

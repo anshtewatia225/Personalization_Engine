@@ -65,7 +65,9 @@ export default function RulesTab({ ruleResult, disabledIds, onToggleRule }) {
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="font-medium text-slate-200">{rule.label}</span>
                     <StateBadge state={rule.state} />
-                    <span className="font-mono text-[10px] text-slate-500">weight {rule.weight}</span>
+                    <span className="font-mono text-[10px] text-slate-500">
+                      weight {rule.weight}
+                    </span>
                     {didFire && (
                       <span className="rounded bg-indigo-500/20 px-1.5 py-0.5 text-[10px] font-medium text-indigo-200">
                         fired

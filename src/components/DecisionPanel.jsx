@@ -16,7 +16,11 @@ export default function DecisionPanel({
   const barClass = STATES[decision?.classification]?.barClass
 
   return (
-    <Panel title="Decision" subtitle="Hybrid rule engine + LLM" className="w-full lg:w-96 lg:shrink-0">
+    <Panel
+      title="Decision"
+      subtitle="Hybrid rule engine + LLM"
+      className="w-full lg:w-96 lg:shrink-0"
+    >
       <div className="flex flex-col gap-5 p-4">
         {!hasEvents ? (
           <div className="flex min-h-48 items-center justify-center text-center text-sm text-slate-500">
@@ -25,7 +29,7 @@ export default function DecisionPanel({
         ) : (
           <>
             {/* Final call */}
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-3" aria-live="polite">
               <div className="flex items-center justify-between gap-2">
                 <StateBadge state={decision.classification} size="lg" />
                 <AgreementPill agreement={decision.agreement} />
@@ -48,7 +52,9 @@ export default function DecisionPanel({
                 ) : llmResult ? (
                   <>
                     <StateBadge state={llmResult.classification} />
-                    <span className="font-mono text-xs text-slate-400">{llmResult.confidence}%</span>
+                    <span className="font-mono text-xs text-slate-400">
+                      {llmResult.confidence}%
+                    </span>
                     {llmLatency != null && (
                       <span className="font-mono text-[10px] text-slate-500">· {llmLatency}ms</span>
                     )}
@@ -59,12 +65,24 @@ export default function DecisionPanel({
               </VerdictBox>
             </div>
 
+            {llmResult?.meta && (
+              <p className="-mt-2 font-mono text-[10px] text-slate-600">
+                {llmResult.meta.model} · prompt {llmResult.meta.promptVersion} ·{' '}
+                {llmResult.meta.attempts} attempt{llmResult.meta.attempts > 1 ? 's' : ''}
+                {llmResult.meta.costUsd > 0 && ` · $${llmResult.meta.costUsd.toFixed(5)}`}
+              </p>
+            )}
+
             <button
               onClick={onRunLLM}
               disabled={llmLoading}
               className="w-full rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-40"
             >
-              {llmLoading ? 'Asking the LLM…' : llmResult ? 'Re-run LLM second opinion' : 'Get LLM second opinion'}
+              {llmLoading
+                ? 'Asking the LLM…'
+                : llmResult
+                  ? 'Re-run LLM second opinion'
+                  : 'Get LLM second opinion'}
             </button>
 
             {llmError && (
@@ -85,10 +103,14 @@ export default function DecisionPanel({
                 <ul className="flex flex-col gap-1.5">
                   {ruleResult.firedRules.map((r) => (
                     <li key={r.id} className="flex items-start gap-2 text-sm text-slate-300">
-                      <span className={`mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full ${STATES[r.state].dotClass}`} />
+                      <span
+                        className={`mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full ${STATES[r.state].dotClass}`}
+                      />
                       <span>
                         {r.explanation}
-                        <span className="ml-1 font-mono text-[10px] text-slate-600">+{r.weight}</span>
+                        <span className="ml-1 font-mono text-[10px] text-slate-600">
+                          +{r.weight}
+                        </span>
                       </span>
                     </li>
                   ))}
@@ -111,7 +133,9 @@ export default function DecisionPanel({
                   ))}
                 </ul>
                 {llmResult.reasoning && (
-                  <p className="mt-2 text-sm leading-relaxed text-slate-400">{llmResult.reasoning}</p>
+                  <p className="mt-2 text-sm leading-relaxed text-slate-400">
+                    {llmResult.reasoning}
+                  </p>
                 )}
               </div>
             )}
@@ -124,7 +148,8 @@ export default function DecisionPanel({
               <p className="mt-1 text-sm text-indigo-100">{action}</p>
               {llmResult && llmResult.recommended_action && (
                 <p className="mt-2 border-t border-indigo-500/20 pt-2 text-xs text-indigo-200/80">
-                  <span className="font-semibold">LLM suggests:</span> {llmResult.recommended_action}
+                  <span className="font-semibold">LLM suggests:</span>{' '}
+                  {llmResult.recommended_action}
                 </p>
               )}
             </div>
@@ -143,4 +168,3 @@ function VerdictBox({ title, children }) {
     </div>
   )
 }
-

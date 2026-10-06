@@ -1,0 +1,20 @@
+# Render blueprint for the API service (key-holding proxy + server-side engine).
+# Deploy from the repository root so the service can import the shared lib in ./src.
+services:
+  - type: web
+    name: shopper-intent-api
+    runtime: node
+    plan: free
+    rootDir: .
+    buildCommand: npm install --prefix server
+    startCommand: node server/index.js
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_VERSION
+        value: '22'
+      - key: GROQ_API_KEY
+        sync: false
+      - key: CORS_ORIGIN
+        sync: false
+      - key: NODE_ENV
+        value: production

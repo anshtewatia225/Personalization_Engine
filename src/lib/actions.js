@@ -5,7 +5,10 @@
 function cleanProduct(detail) {
   if (!detail) return null
   // "Nimbus 4K Monitor 32\" — $429.00" -> "Nimbus 4K Monitor 32\""
-  const name = detail.split('—')[0].replace(/\([^)]*\)/g, '').trim()
+  const name = detail
+    .split('—')[0]
+    .replace(/\([^)]*\)/g, '')
+    .trim()
   return name || null
 }
 
@@ -38,7 +41,9 @@ const TEMPLATES = {
     `Show a side-by-side comparison for ${
       c.cartItem ?? c.lastProduct ?? 'the products they viewed'
     } with clear differentiators, spec tables, and reviews${
-      c.compareCount ? ` — they already ran ${c.compareCount} comparison${c.compareCount > 1 ? 's' : ''}.` : '.'
+      c.compareCount
+        ? ` — they already ran ${c.compareCount} comparison${c.compareCount > 1 ? 's' : ''}.`
+        : '.'
     }`,
 
   DISCOUNT_SEEKER: (c) =>

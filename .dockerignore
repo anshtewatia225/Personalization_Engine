@@ -1,0 +1,16 @@
+node_modules
+*/node_modules
+dist
+coverage
+playwright-report
+test-results
+blob-report
+server/data
+.git
+.gitignore
+.env
+.env.*
+*.log
+walkthrough
+docs
+eval

@@ -4,3 +4,13 @@ dist
 .env.local
 *.log
 .DS_Store
+
+# tests & tooling
+coverage
+playwright-report
+test-results
+blob-report
+.vitest
+
+# server runtime data (file-based persistence)
+server/data

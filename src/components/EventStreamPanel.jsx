@@ -51,7 +51,9 @@ export default function EventStreamPanel({
                 key={i}
                 className="group flex items-start gap-3 rounded-lg border border-slate-700/70 bg-slate-900/50 px-3 py-2"
               >
-                <span className="mt-0.5 w-5 shrink-0 text-right font-mono text-xs text-slate-600">{i + 1}</span>
+                <span className="mt-0.5 w-5 shrink-0 text-right font-mono text-xs text-slate-600">
+                  {i + 1}
+                </span>
                 <div className="min-w-0 flex-1">
                   <EventTypePill type={ev.type} />
                   <p className="mt-1 break-words text-sm text-slate-200">{ev.detail}</p>
@@ -61,7 +63,14 @@ export default function EventStreamPanel({
                   title="Remove event"
                   className="shrink-0 rounded p-1 text-slate-600 opacity-0 transition hover:bg-slate-700 hover:text-red-300 group-hover:opacity-100"
                 >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
                     <path d="M18 6 6 18M6 6l12 12" />
                   </svg>
                 </button>

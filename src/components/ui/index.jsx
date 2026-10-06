@@ -7,7 +7,9 @@ export function StateBadge({ state, size = 'sm' }) {
   if (!meta) return null
   const pad = size === 'lg' ? 'px-3 py-1.5 text-sm' : 'px-2 py-0.5 text-xs'
   return (
-    <span className={`inline-flex items-center gap-1.5 rounded-full font-medium ${pad} ${meta.badgeClass}`}>
+    <span
+      className={`inline-flex items-center gap-1.5 rounded-full font-medium ${pad} ${meta.badgeClass}`}
+    >
       <span className={`h-1.5 w-1.5 rounded-full ${meta.dotClass}`} />
       {meta.label}
     </span>
@@ -55,7 +57,9 @@ export function Legend() {
 // A titled card surface — the repeated container used by every panel.
 export function Panel({ title, subtitle, right, children, className = '' }) {
   return (
-    <section className={`flex flex-col rounded-xl border border-slate-700 bg-slate-800/60 ${className}`}>
+    <section
+      className={`flex flex-col rounded-xl border border-slate-700 bg-slate-800/60 ${className}`}
+    >
       {(title || right) && (
         <div className="flex items-center justify-between border-b border-slate-700 px-4 py-3">
           <div>

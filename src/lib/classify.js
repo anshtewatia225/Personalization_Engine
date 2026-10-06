@@ -3,11 +3,30 @@
 // backend (VITE_API_BASE_URL) in production.
 
 import { STATES } from '../constants/presets.js'
+import { sanitizeEvents } from './sanitize.js'
 
-export const GROQ_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api/groq'
+export const GROQ_BASE_URL =
+  (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_BASE_URL) || '/api/groq'
 export const GROQ_MODEL = 'openai/gpt-oss-120b'
+export const PROMPT_VERSION = 'v2'
+
+// Approximate USD price per 1M tokens, used only for a rough cost readout.
+const PRICING = {
+  'openai/gpt-oss-120b': { input: 0.15, output: 0.75 },
+  'llama-3.3-70b-versatile': { input: 0.59, output: 0.79 },
+}
 
 const VALID_STATES = Object.keys(STATES)
+const DEFAULT_TIMEOUT_MS = 15_000
+const DEFAULT_RETRIES = 2
+
+export function estimateCost(model, usage) {
+  const price = PRICING[model]
+  if (!price || !usage) return 0
+  const inTok = Number(usage.prompt_tokens) || 0
+  const outTok = Number(usage.completion_tokens) || 0
+  return (inTok * price.input + outTok * price.output) / 1_000_000
+}
 
 export function buildPrompt(events, isReturning) {
   const system =
@@ -63,46 +82,128 @@ function validate(result) {
   }
 }
 
-export async function callLLMClassifier({ events, isReturning, baseUrl = GROQ_BASE_URL }) {
-  const { system, user } = buildPrompt(events, isReturning)
-
-  let res
-  try {
-    res = await fetch(`${baseUrl}/openai/v1/chat/completions`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: GROQ_MODEL,
-        max_tokens: 1000,
-        temperature: 0.2,
-        response_format: { type: 'json_object' },
-        messages: [
-          { role: 'system', content: system },
-          { role: 'user', content: user },
-        ],
-      }),
-    })
-  } catch (e) {
-    throw new Error(`Network error reaching the classifier: ${e.message}`)
-  }
-
-  if (!res.ok) {
-    let detail = ''
-    try {
-      const body = await res.json()
-      detail = body?.error?.message || ''
-    } catch {
-      /* ignore parse failure on error body */
-    }
-    if (res.status === 401) {
-      throw new Error('Authentication failed (401). Check VITE_GROQ_API_KEY in your .env file.')
-    }
-    throw new Error(`Classifier request failed (${res.status}). ${detail}`.trim())
-  }
-
-  const data = await res.json()
-  const text = data?.choices?.[0]?.message?.content
-  if (!text) throw new Error('Classifier returned an empty response.')
-
-  return validate(extractJson(text))
+function backoff(attempt) {
+  const ms = Math.min(4000, 300 * 2 ** (attempt - 1))
+  return new Promise((resolve) => setTimeout(resolve, ms))
 }
+
+function now() {
+  return typeof performance !== 'undefined' ? performance.now() : Date.now()
+}
+
+export async function callLLMClassifier({
+  events,
+  isReturning,
+  baseUrl = GROQ_BASE_URL,
+  model = GROQ_MODEL,
+  timeoutMs = DEFAULT_TIMEOUT_MS,
+  retries = DEFAULT_RETRIES,
+  signal,
+  fetchImpl,
+}) {
+  const doFetch = fetchImpl || globalThis.fetch
+  const safeEvents = sanitizeEvents(events)
+  const { system, user } = buildPrompt(safeEvents, isReturning)
+  const started = now()
+
+  let attempt = 0
+  let lastError
+
+  while (attempt <= retries) {
+    attempt++
+    const controller = new AbortController()
+    let timedOut = false
+    const onExternalAbort = () => controller.abort()
+    if (signal) {
+      if (signal.aborted) throw new DOMException('Aborted', 'AbortError')
+      signal.addEventListener('abort', onExternalAbort, { once: true })
+    }
+    const timer = setTimeout(() => {
+      timedOut = true
+      controller.abort()
+    }, timeoutMs)
+
+    try {
+      const res = await doFetch(`${baseUrl}/openai/v1/chat/completions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model,
+          max_tokens: 1000,
+          temperature: 0.2,
+          response_format: { type: 'json_object' },
+          messages: [
+            { role: 'system', content: system },
+            { role: 'user', content: user },
+          ],
+        }),
+        signal: controller.signal,
+      })
+
+      if (!res.ok) {
+        let detail = ''
+        try {
+          const body = await res.json()
+          detail = body?.error?.message || ''
+        } catch {
+          /* ignore parse failure on error body */
+        }
+        if (res.status === 401) {
+          throw new Error('Authentication failed (401). Check VITE_GROQ_API_KEY in your .env file.')
+        }
+        const err = new Error(`Classifier request failed (${res.status}). ${detail}`.trim())
+        err.status = res.status
+        if (res.status === 429 || res.status >= 500) {
+          lastError = err
+          if (attempt <= retries) {
+            await backoff(attempt)
+            continue
+          }
+        }
+        throw err
+      }
+
+      const data = await res.json()
+      const text = data?.choices?.[0]?.message?.content
+      if (!text) throw new Error('Classifier returned an empty response.')
+
+      const validated = validate(extractJson(text))
+      return {
+        ...validated,
+        meta: {
+          model,
+          promptVersion: PROMPT_VERSION,
+          latencyMs: Math.round(now() - started),
+          attempts: attempt,
+          usage: data?.usage || null,
+          costUsd: estimateCost(model, data?.usage),
+        },
+      }
+    } catch (e) {
+      if (controller.signal.aborted && !timedOut) throw e
+      if (e.status && e.status !== 429 && e.status < 500) throw e
+      if (e.message?.includes('Authentication failed')) throw e
+
+      const wrapped =
+        e.status || e.message?.startsWith('Classifier')
+          ? e
+          : new Error(
+              timedOut
+                ? `Classifier timed out after ${timeoutMs}ms.`
+                : `Network error reaching the classifier: ${e.message}`,
+            )
+      lastError = wrapped
+      if (attempt <= retries) {
+        await backoff(attempt)
+        continue
+      }
+    } finally {
+      clearTimeout(timer)
+      if (signal) signal.removeEventListener('abort', onExternalAbort)
+    }
+  }
+
+  throw lastError || new Error('Classifier request failed.')
+}
+
+export { extractJson, validate }
